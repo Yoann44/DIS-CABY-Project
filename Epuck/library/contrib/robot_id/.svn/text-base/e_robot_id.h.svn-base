@@ -1,0 +1,25 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *  e_robot_id.h
+ *
+ *  Interface to robot's unique id number stored in the EEPROM.
+ *
+ *  Adapted from initial version by X. Raemy.
+ *
+ *  $Author$
+ *  $Date$
+ *  $Revision$
+ *  $HeadURL$
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+
+#ifndef _ROBOT_ID_H
+#define _ROBOT_ID_H
+
+
+void e_init_robot_id();
+int  e_get_robot_id();
+int  e_get_selector();
+
+
+#endif // _ROBOT_ID_H

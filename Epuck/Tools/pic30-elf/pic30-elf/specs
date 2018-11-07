@@ -1,0 +1,118 @@
+*asm:
+--relax %{mcpu=*:-p%*}
+
+*asm_debug:
+
+
+*asm_final:
+
+
+*pre_asm:
+%{pipe: %e-pipe and -mpa are incompatible} %{!mpa: %{save-temps: -o %b.s} %{!save-temps: %{!S:-o %g.s} %{S:%{!o*:-o %b.s}%{o*:%{o*}}}}
+}%{mpa: %{save-temps: -o %b.p} %{!save-temps: %{S: -o %b.p
+} %{!S:-o %g.p}}
+%(program_prefix)pa %{mcpu=*:--mcpu=%*} %{mpa=*:-n%*} %{v:-v} %{save-temps: -o%b.s}%{!save-temps: %{!S:-o%g.s} %{S:%{!o*:-o%b.s}%{o*:%{^o*}}}} %{save-temps: %b.p} %{!save-temps: %{S: %b.p} %{!S: %g.p}}
+}
+
+*asm_options:
+%a %Y %{c: %{o*}%{!o*:-o %w%b%O}}%{!c:%{save-temps:-o %w%b%O}%{!save-temps:-o %d%w%u%O}}
+
+*invoke_as:
+%{!S:%(program_prefix)as %(asm_options) %{!pipe:%{save-temps: %b.s} %{!save-temps: %g.s}} %A }
+
+*cpp:
+
+
+*cpp_options:
+%(cpp_unique_options) %1 %{m*} %{std*} %{ansi} %{W*&pedantic*} %{w} %{f*} %{O*} %{undef}
+
+*cpp_debug_options:
+%{d*}
+
+*cpp_unique_options:
+%{C:%{!E:%eGNU C does not support -C without using -E}} %{CC:%{!E:%eGNU C does not support -CC without using -E}} %{!Q:-quiet} %{nostdinc*} %{C} %{CC} %{v} %{I*} %{P} %I %{MD:-MD %{!o:%b.d}%{o*:%.d%*}} %{MMD:-MMD %{!o:%b.d}%{o*:%.d%*}} %{M} %{MM} %{MF*} %{MG} %{MP} %{MQ*} %{MT*} %{!E:%{!M:%{!MM:%{MD|MMD:%{o*:-MQ %*}}}}} %{!no-gcc:-D__GNUC__=%v1 -D__GNUC_MINOR__=%v2 -D__GNUC_PATCHLEVEL__=%v3} %{!undef:%{!ansi:%{!std=*:%p}%{std=gnu*:%p}} %P} %{trigraphs} %{remap} %{g3:-dD} %{H} %C %{D*&U*&A*} %{i*} %Z %i %{E|M|MM:%W{o*}}
+
+*trad_capable_cpp:
+%(program_prefix)cc1 -E %{traditional|ftraditional|traditional-cpp:-traditional-cpp}
+
+*cc1:
+
+
+*cc1_options:
+%{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}} %1 %{!Q:-quiet} -dumpbase %B %{d*} %{m*} %{a*} -auxbase%{c|S:%{o*:-strip %*}%{!o*: %b}}%{!c:%{!S: %b}} %{g*} %{O*} %{W*&pedantic*} %{w} %{std*} %{ansi} %{v:-version} %{pg:-p} %{p} %{f*} %{undef} %{Qn:-fno-ident} %{--help:--help} %{--target-help:--target-help} %{fsyntax-only:-o %j} %{-param*} %{!fsyntax-only:%pa}
+
+*cc1plus:
+
+
+*link_gcc_c_sequence:
+%G %L %G
+
+*endfile:
+
+
+*link:
+%{mcpu=*:-p%*}
+
+*lib:
+-start-group -lpic30-elf -lm-elf -lc-elf -end-group
+
+*libgcc:
+
+
+*startfile:
+
+
+*switches_need_spaces:
+
+
+*predefines:
+-DC30 -DC30ELF -DdsPIC30 -DdsPIC30ELF
+
+*cross_compile:
+1
+
+*version:
+3.3
+
+*multilib:
+. ;
+
+*multilib_defaults:
+
+
+*multilib_extra:
+
+
+*multilib_matches:
+
+
+*multilib_exclusions:
+
+
+*multilib_options:
+
+
+*linker:
+collect2
+
+*link_libgcc:
+%D
+
+*md_exec_prefix:
+
+
+*md_startfile_prefix:
+
+
+*md_startfile_prefix_1:
+
+
+*program_prefix:
+pic30-elf-
+
+*startfile_prefix_spec:
+
+
+*link_command:
+%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:    %(program_prefix)%(linker) %l %X %{o*} %{A} %{d} %{e*} %{m} %{N} %{n} %{r} %{s} %{t}    %{u*} %{x} %{z} %{Z} %{!A:%{!nostdlib:%{!nostartfiles:%S}}}    %{static:} %{L*} %(link_libgcc) %o %{!nostdlib:%{!nodefaultlibs:%(link_gcc_c_sequence)}}    %{!A:%{!nostdlib:%{!nostartfiles:%E}}} %{T*} }}}}}}
+

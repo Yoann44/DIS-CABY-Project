@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/students/!svn/ver/90/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2
+END
+e_I2C_multimaster_crc.c
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/students/!svn/ver/87/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_I2C_multimaster_crc.c
+END
+e_I2C_slave.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/students/!svn/ver/87/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_I2C_slave.h
+END
+e_radio_swis_const.h
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svn/students/!svn/ver/89/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_radio_swis_const.h
+END
+e_I2C_multimaster_crc.h
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/students/!svn/ver/87/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_I2C_multimaster_crc.h
+END
+e_crc8.c
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/students/!svn/ver/87/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_crc8.c
+END
+e_radio_swis.c
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/students/!svn/ver/89/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_radio_swis.c
+END
+e_crc8.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/students/!svn/ver/87/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_crc8.h
+END
+e_I2C_slave.c
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/students/!svn/ver/90/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_I2C_slave.c
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/students/!svn/ver/87/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/Makefile
+END
+e_radio_swis.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/students/!svn/ver/89/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/v2/e_radio_swis.h
+END
