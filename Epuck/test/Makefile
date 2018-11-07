@@ -9,7 +9,7 @@
 # ==============================================================================
 
 PROG = test
-EPUCKLIBROOT = ../../src
+EPUCKLIBROOT = ../library
 
 # ==============================================================================
 # Potential Epuck Libraries
@@ -86,7 +86,7 @@ all: $(PROG).hex tags $(DEPS)
 # ------------------------------------------------------------------------------
 .PHONY:	clean
 clean:	
-	- $(RM) $(OBJS) *~ core.* *.rpo $(PROG).cof $(PROG).hex
+	- $(RM) $(OBJS) *~ core.* *.rpo $(PROG).cof $(PROG).hex *.d
 
 .PHONY: distclean
 distclean: clean
