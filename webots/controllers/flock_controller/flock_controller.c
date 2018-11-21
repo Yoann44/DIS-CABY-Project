@@ -39,17 +39,17 @@
 
 
 #define RULE1_THRESHOLD     0.20   // Threshold to activate aggregation rule. default 0.20
-#define RULE1_WEIGHT        (2.0/10)	   // Weight of aggregation rule. default 0.6/10
+#define RULE1_WEIGHT        (0.8/10)	   // Weight of aggregation rule. default 0.6/10
 
-#define RULE2_THRESHOLD     0.1   // Threshold to activate dispersion rule. default 0.15
-#define RULE2_WEIGHT        (0.01/1000)	   // Weight of dispersion rule. default 0.02/10
+#define RULE2_THRESHOLD     0.12   // Threshold to activate dispersion rule. default 0.15
+#define RULE2_WEIGHT        (0.5/10)	   // Weight of dispersion rule. default 0.02/10
 
-#define RULE4_THRESHOLD     0.10   // Threshold to activate dispersion rule. default 0.15
-#define RULE4_WEIGHT        (0.1/100)	   // Weight of dispersion rule. default 0.02/10
+#define RULE4_THRESHOLD     0.12   // Threshold to activate dispersion rule. default 0.15
+#define RULE4_WEIGHT        (0.0/100)	   // Weight of dispersion rule. default 0.02/10
 
 #define RULE3_WEIGHT        (1.0/10)   // Weight of consistency rule. default 1.0/10
 
-#define MIGRATION_WEIGHT    (0.02/10)   // Wheight of attraction towards the common goal. default 0.01/10
+#define MIGRATION_WEIGHT    (0.04/10)   // Wheight of attraction towards the common goal. default 0.01/10
 
 #define MIGRATORY_URGE 1 // Tells the robots if they should just go forward or move towards a specific migratory direction
 
@@ -76,7 +76,7 @@ float prev_my_position[3];  		// X, Z, Theta of the current robot in the previou
 float speed[FLOCK_SIZE][2];		// Speeds calculated with Reynold's rules
 float relative_speed[FLOCK_SIZE][2];	// Speeds calculated with Reynold's rules
 int initialized[FLOCK_SIZE];		// != 0 if initial positions have been received
-float migr[2] = {25,-25};	        // Migration vector
+float migr[2] = {0.0,-10.0};	        // Migration vector
 char* robot_name;
 
 float theta_robots[FLOCK_SIZE];
@@ -124,9 +124,6 @@ static void reset()
 	}
 
 	printf("Reset: robot %d\n",robot_id_u);
-
-	migr[0] = 0;
-	migr[1] = -25.0f;
 }
 
 
@@ -242,9 +239,12 @@ void reynolds_rules() {
 	for(k = 0; k < FLOCK_SIZE; k++) {
 		if(k != robot_id) {
 			float distance = sqrtf( pow(relative_pos[k][0], 2)+pow(relative_pos[k][1], 2) );
+			float repulsion = RULE2_THRESHOLD/distance - 1;
 			if( distance < RULE2_THRESHOLD) {
 			for (j=0;j<2;j++) {
-				dispersion[j] -= RULE2_THRESHOLD/pow(relative_pos[k][j], 2) - 1;
+				dispersion[j] -= relative_pos[k][j] / distance * repulsion;
+				if(j==1)
+  		printf("Robot : %d - %d Dispersion: dispersion[0] = %f, dispersion[1] = %f, rel_pos[0] = %f, rel_pos[1] = %f\n", robot_id, k, dispersion[0], dispersion[1], relative_pos[k][0], relative_pos[k][1]);
 			}
 		}
 		else if(distance > RULE4_THRESHOLD) {
@@ -271,9 +271,17 @@ void reynolds_rules() {
 	for (j=0;j<2;j++) 
 	{
 		speed[robot_id][j] = cohesion[j] * RULE1_WEIGHT;
+		if(j==1)
+  		printf("Robot : %d - Cohesion: speed[0] = %f, speed[1] = %f\n", robot_id, speed[robot_id][0], speed[robot_id][1]);
 		speed[robot_id][j] +=  dispersion[j] * RULE2_WEIGHT;
+		if(j==1)
+  		printf("Robot : %d - Dispersion: speed[0] = %f, speed[1] = %f\n", robot_id, speed[robot_id][0], speed[robot_id][1]);
 		speed[robot_id][j] +=  consistency[j] * RULE3_WEIGHT;
+		if(j==1)
+  		printf("Robot : %d - Consistency: speed[0] = %f, speed[1] = %f\n", robot_id, speed[robot_id][0], speed[robot_id][1]);
 		speed[robot_id][j] +=  agregation[j] * RULE4_WEIGHT;
+		if(j==1)
+  		printf("Robot : %d - Aggregation: speed[0] = %f, speed[1] = %f\n", robot_id, speed[robot_id][0], speed[robot_id][1]);
 	}
 	speed[robot_id][1] *= -1; //y axis of webots is inverted
 
@@ -336,7 +344,7 @@ void process_received_ping_messages(void)
 		relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
 		relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
 
-		printf("Robot %s, from robot %d, x: %g, y: %g, theta %g, my theta %g\n",robot_name,other_robot_id,relative_pos[other_robot_id][0],relative_pos[other_robot_id][1],-atan2(y,x)*180.0/3.141592,my_position[2]*180.0/3.141592);
+		//printf("Robot %s, from robot %d, x: %g, y: %g, theta %g, my theta %g\n",robot_name,other_robot_id,relative_pos[other_robot_id][0],relative_pos[other_robot_id][1],-atan2(y,x)*180.0/3.141592,my_position[2]*180.0/3.141592);
 		
 		relative_speed[other_robot_id][0] = relative_speed[other_robot_id][0]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][0]-prev_relative_pos[other_robot_id][0]);
 		relative_speed[other_robot_id][1] = relative_speed[other_robot_id][1]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][1]-prev_relative_pos[other_robot_id][1]);		
@@ -408,8 +416,8 @@ int main(){
 		}
 
 		// Add Braitenberg
-		msl += bmsl*4.0f;
-		msr += bmsr*4.0f;
+		msl += bmsl*6.0f;
+		msr += bmsr*6.0f;
 		
 		/*Webots 2018b*/
 		// Set speed
