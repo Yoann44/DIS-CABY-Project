@@ -31,6 +31,7 @@ float loc[FLOCK_SIZE][3];		// Location of everybody in the flock
 #define fit_cluster_ref 0.03
 #define fit_orient_ref 1.0
 
+#define v_e_puck_max 0.1287		// [m/s] E-puck maximum speed
 
 int offset;				// Offset of robots number
 float migrx, migrz;			// Migration vector
@@ -79,6 +80,47 @@ void compute_fitness(float* fit_c, float* fit_o) {
 	*fit_o /= FLOCK_SIZE;
 }
 
+//Compute metrics for the project
+void compute_metric(float* met,float* cm_pos){
+	float or_cos=0.; float or_sin=0.;
+    float dist=0.; float proj=0.;       //Distance between robot pos and cm, projection of velo of cm onto migratory urge
+	float new_cm_pos[2]= {0,0}; 		//Position of center of mass of the swarm
+	int i; int j;
+	for (i=0;i<FLOCK_SIZE;i++)
+	{	
+		or_cos+= cos(loc[i][2]);
+		or_sin+= sin(loc[i][2]);
+		for (j=0;j<2;j++){
+			new_cm_pos[j]+=loc[i][j];
+		}
+	}
+	// Compute center of mass of the swarm
+	for (j=0;j<2;j++){
+		new_cm_pos[j]/=FLOCK_SIZE;
+	}
+	for (i=0;i<FLOCK_SIZE;i++){
+		dist+=sqrtf(powf(loc[i][0]-new_cm_pos[0],2)+powf(loc[i][1]-new_cm_pos[1],2));
+	}
+	
+	// Orientation metric
+	met[0]=sqrtf(powf(or_cos,2)+powf(or_sin,2))/FLOCK_SIZE;	
+	
+    // Cohesion metric
+	met[1]=1/(1+dist/FLOCK_SIZE);
+    
+    // Velocity metric
+    // Compute projection of the velocity of the center of mass onto the migratory urge vector
+    proj=(new_cm_pos[0]-cm_pos[0])*migrx+(new_cm_pos[1]-cm_pos[1])*migrz;
+    proj/=sqrtf(powf(migrx,2)+powf(migrz,2));
+    met[2]=fmax(proj,0)/v_e_puck_max;
+    
+    //Performance instant
+    met[3]=met[0]*met[1]*met[2];
+    
+    //Overall Performance
+    met[4]+=met[3];
+}
+
 
 
 /*
@@ -95,7 +137,11 @@ int main(int argc, char *args[]) {
 	
 	float fit_cluster;			// Performance metric for aggregation
 	float fit_orient;			// Performance metric for orientation
-		
+	
+	// Compute metrics for project
+	float metrics[5]={0.,0.,0.,0.,0.}; 	//Table with the 5 metrics
+	float cm_pos[2]={0.,0.};		// Position of center of mass (old position)
+	
 	for(;;) {
 		wb_robot_step(TIME_STEP);
 		
@@ -111,7 +157,12 @@ int main(int argc, char *args[]) {
 			compute_fitness(&fit_cluster, &fit_orient);
 			fit_cluster = fit_cluster_ref/fit_cluster;
 			fit_orient = 1-fit_orient/M_PI;
-			printf("time:%d, Topology Performance: %f\n", t, fit_cluster);			
+			printf("time:%d, Topology Performance: %f\n", t, fit_cluster);
+			
+			//compute metric values			
+			compute_metric(metrics, cm_pos);
+            		met[4]/=t;
+            		printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n", t, met[0], met[1], met[2], met[3], met[4]);
 			
 		}
 		
