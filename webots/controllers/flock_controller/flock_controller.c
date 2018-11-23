@@ -39,12 +39,12 @@
 
 
 #define RULE1_THRESHOLD     0.20   // Threshold to activate aggregation rule. default 0.20
-#define RULE1_WEIGHT        (0.8/10)	   // Weight of aggregation rule. default 0.6/10
+#define RULE1_WEIGHT        (1.0/10)	   // Weight of aggregation rule. default 0.6/10
 
-#define RULE2_THRESHOLD     0.12   // Threshold to activate dispersion rule. default 0.15
-#define RULE2_WEIGHT        (0.5/10)	   // Weight of dispersion rule. default 0.02/10
+#define RULE2_THRESHOLD     0.10   // Threshold to activate dispersion rule. default 0.15
+#define RULE2_WEIGHT        (3.0/10)	   // Weight of dispersion rule. default 0.02/10
 
-#define RULE4_THRESHOLD     0.12   // Threshold to activate dispersion rule. default 0.15
+#define RULE4_THRESHOLD     0.10   // Threshold to activate dispersion rule. default 0.15
 #define RULE4_WEIGHT        (0.0/100)	   // Weight of dispersion rule. default 0.02/10
 
 #define RULE3_WEIGHT        (1.0/10)   // Weight of consistency rule. default 1.0/10
@@ -52,6 +52,7 @@
 #define MIGRATION_WEIGHT    (0.04/10)   // Wheight of attraction towards the common goal. default 0.01/10
 
 #define MIGRATORY_URGE 1 // Tells the robots if they should just go forward or move towards a specific migratory direction
+#define OBSTACLE_SCENARIO 1
 
 #define ABS(x) ((x>=0)?(x):-(x))
 
@@ -61,6 +62,7 @@ WbDeviceTag right_motor; //handler for the right wheel of the robot
 /*Webots 2018b*/
 
 int e_puck_matrix[16] = {17,29,34,10,8,-38,-56,-76,-72,-58,-36,8,10,36,28,18}; // for obstacle avoidance
+//int e_puck_matrix[16] = {12,24,29,5,3,-43,-61,-81,-67,-53,-31,13,15,41,33,23}; // for obstacle avoidance
 
 
 WbDeviceTag ds[NB_SENSORS];	// Handle for the infrared distance sensors
@@ -202,7 +204,7 @@ void compute_wheel_speeds(int *msl, int *msr)
  */
 
 void reynolds_rules() {
-	int i, j, k;			// Loop counters
+	int i, j, k, start, end;			// Loop counters
 	float rel_avg_loc[2] = {0,0};	// Flock average positions
 	float rel_avg_speed[2] = {0,0};	// Flock average speeds
 	float cohesion[2] = {0,0};
@@ -210,8 +212,21 @@ void reynolds_rules() {
 	float consistency[2] = {0,0};
 	float agregation[2] = {0,0};
 	
+	if(OBSTACLE_SCENARIO) {
+    	start = 0;
+    	end = FLOCK_SIZE;
+	}
+	else if(robot_id < FLOCK_SIZE / 2) {
+	start = 0;
+	end = FLOCK_SIZE / 2;
+	}
+	else {
+	start  = FLOCK_SIZE / 2;
+	end = FLOCK_SIZE;
+	}
+	
 	/* Compute averages over the whole flock */
-	for(i=0; i < FLOCK_SIZE; i++) {
+	for(i=start; i < end; i++) {
 		if(i == robot_id) {
 			continue;
 		}
@@ -222,8 +237,8 @@ void reynolds_rules() {
 	}
 
 	for (j=0;j<2;j++) {
-		rel_avg_speed[j] /= FLOCK_SIZE-1;
-		rel_avg_loc[j] /= FLOCK_SIZE-1;
+		rel_avg_speed[j] /= end - start-1;
+		rel_avg_loc[j] /= end-start-1;
 	}
 	
 	//printf("Robot %s, x_avg: %g, y_avg: %g, speed_x_avg %g, speed_y_avg %g\n",robot_name,rel_avg_loc[0],rel_avg_loc[1],rel_avg_speed[0],rel_avg_speed[1]);
