@@ -132,6 +132,21 @@ void compute_metric(float* met,float* cm_pos){
 int main(int argc, char *args[]) {
 	int i;			// Index
   
+	if (argc == 4) { // Get parameters
+		offset = atoi(args[1]);
+		migrx = atof(args[2]);
+		migrz = atof(args[3]);
+		//migration goal point comes from the controller arguments. It is defined in the world-file, under "controllerArgs" of the supervisor.
+		printf("Migratory instinct : (%f, %f)\n", migrx, migrz);
+	} else {
+		printf("Missing argument\n");
+		return 1;
+	}
+	
+	orient_migr = -atan2f(migrx,migrz);
+	if (orient_migr<0) {
+		orient_migr+=2*M_PI; // Keep value within 0, 2pi
+	}
 	reset();
 
 	
