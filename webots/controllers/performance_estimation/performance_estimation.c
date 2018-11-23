@@ -178,8 +178,8 @@ int main(int argc, char *args[]) {
 			
 			//compute metric values			
 			compute_metric(metrics, cm_pos);
-            		met[4]/=t;
-            		printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n", t, met[0], met[1], met[2], met[3], met[4]);
+            		metrics[4]/=t;
+            		printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n", t, metrics[0], metrics[1], metrics[2], metrics[3], metrics[4]);
 			
 		}
 		
