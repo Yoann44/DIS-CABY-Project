@@ -113,6 +113,8 @@ void compute_metric(float* met,float* cm_pos){
     proj=(new_cm_pos[0]-cm_pos[0])*migrx+(new_cm_pos[1]-cm_pos[1])*migrz;
     proj/=sqrtf(powf(migrx,2)+powf(migrz,2));
     met[2]=fmax(proj,0)/v_e_puck_max;
+	cm_pos[0]=new_cm_pos[0];
+	cm_pos[1]=new_cm_pos[1];
     
     //Performance instant
     met[3]=met[0]*met[1]*met[2];
