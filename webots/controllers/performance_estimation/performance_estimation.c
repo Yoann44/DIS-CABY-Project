@@ -18,7 +18,7 @@
 #include <webots/emitter.h>
 #include <webots/supervisor.h>
 
-#define FLOCK_SIZE	4 		// Number of robots in flock
+#define FLOCK_SIZE	5 		// Number of robots in flock
 #define TIME_STEP	64		// [ms] Length of time step
 
 WbNodeRef robs[FLOCK_SIZE];		// Robots nodes
