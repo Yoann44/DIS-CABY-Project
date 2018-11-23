@@ -18,7 +18,7 @@
 #include <webots/emitter.h>
 #include <webots/supervisor.h>
 
-#define FLOCK_SIZE	4 		// Number of robots in flock
+#define FLOCK_SIZE	5 		// Number of robots in flock
 #define TIME_STEP	64		// [ms] Length of time step
 
 WbNodeRef robs[FLOCK_SIZE];		// Robots nodes
@@ -113,6 +113,8 @@ void compute_metric(float* met,float* cm_pos){
     proj=(new_cm_pos[0]-cm_pos[0])*migrx+(new_cm_pos[1]-cm_pos[1])*migrz;
     proj/=sqrtf(powf(migrx,2)+powf(migrz,2));
     met[2]=fmax(proj,0)/v_e_puck_max;
+	cm_pos[0]=new_cm_pos[0];
+	cm_pos[1]=new_cm_pos[1];
     
     //Performance instant
     met[3]=met[0]*met[1]*met[2];
@@ -130,6 +132,21 @@ void compute_metric(float* met,float* cm_pos){
 int main(int argc, char *args[]) {
 	int i;			// Index
   
+	if (argc == 4) { // Get parameters
+		offset = atoi(args[1]);
+		migrx = atof(args[2]);
+		migrz = atof(args[3]);
+		//migration goal point comes from the controller arguments. It is defined in the world-file, under "controllerArgs" of the supervisor.
+		printf("Migratory instinct : (%f, %f)\n", migrx, migrz);
+	} else {
+		printf("Missing argument\n");
+		return 1;
+	}
+	
+	orient_migr = -atan2f(migrx,migrz);
+	if (orient_migr<0) {
+		orient_migr+=2*M_PI; // Keep value within 0, 2pi
+	}
 	reset();
 
 	
@@ -161,8 +178,8 @@ int main(int argc, char *args[]) {
 			
 			//compute metric values			
 			compute_metric(metrics, cm_pos);
-            		met[4]/=t;
-            		printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n", t, met[0], met[1], met[2], met[3], met[4]);
+            		metrics[4]/=t;
+            		printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n", t, metrics[0], metrics[1], metrics[2], metrics[3], metrics[4]);
 			
 		}
 		
