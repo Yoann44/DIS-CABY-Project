@@ -91,12 +91,12 @@ void compute_metric(float* met,float* cm_pos){
 		or_cos+= cos(loc[i][2]);
 		or_sin+= sin(loc[i][2]);
 		for (j=0;j<2;j++){
-			new_cm_pos[j]+=loc[i][j];
+			new_cm_pos[j] += loc[i][j];
 		}
 	}
 	// Compute center of mass of the swarm
 	for (j=0;j<2;j++){
-		new_cm_pos[j]/=FLOCK_SIZE;
+		new_cm_pos[j] /= FLOCK_SIZE;
 	}
 	for (i=0;i<FLOCK_SIZE;i++){
 		dist+=sqrtf(powf(loc[i][0]-new_cm_pos[0],2)+powf(loc[i][1]-new_cm_pos[1],2));
@@ -110,9 +110,10 @@ void compute_metric(float* met,float* cm_pos){
     
     // Velocity metric
     // Compute projection of the velocity of the center of mass onto the migratory urge vector
-    proj=(new_cm_pos[0]-cm_pos[0])*migrx+(new_cm_pos[1]-cm_pos[1])*migrz;
-    proj/=sqrtf(powf(migrx,2)+powf(migrz,2));
+    proj = (new_cm_pos[0]-cm_pos[0]) * migrx + (new_cm_pos[1]-cm_pos[1]) * migrz;
+    proj /= sqrtf(powf(migrx,2)+powf(migrz,2)) * TIME_STEP / 1000.;
     met[2]=fmax(proj,0)/v_e_puck_max;
+    
 	cm_pos[0]=new_cm_pos[0];
 	cm_pos[1]=new_cm_pos[1];
     
@@ -139,11 +140,15 @@ int main(int argc, char *args[]) {
 		//migration goal point comes from the controller arguments. It is defined in the world-file, under "controllerArgs" of the supervisor.
 		printf("Migratory instinct : (%f, %f)\n", migrx, migrz);
 	} else {
+    		offset = 0.;
+		migrx = 1.0;
+		migrz = 0.0;
 		printf("Missing argument\n");
-		return 1;
+		//return 1;
 	}
 	
 	orient_migr = -atan2f(migrx,migrz);
+	
 	if (orient_migr<0) {
 		orient_migr+=2*M_PI; // Keep value within 0, 2pi
 	}
@@ -157,33 +162,38 @@ int main(int argc, char *args[]) {
 	
 	// Compute metrics for project
 	float metrics[5]={0.,0.,0.,0.,0.}; 	//Table with the 5 metrics
-	float cm_pos[2]={0.,0.};		// Position of center of mass (old position)
+	float cm_pos[2]={0.,0.};
+	
+	int nb_step = 0;		// Position of center of mass (old position)
 	
 	for(;;) {
 		wb_robot_step(TIME_STEP);
+		t += TIME_STEP;
+		nb_step++;
 		
-		if (t % 10 == 0) {
-			for (i=0;i<FLOCK_SIZE;i++) {
-				// Get data
-				loc[i][0] = wb_supervisor_field_get_sf_vec3f(robs_trans[i])[0]; // X
-				loc[i][1] = wb_supervisor_field_get_sf_vec3f(robs_trans[i])[2]; // Z
-				loc[i][2] = wb_supervisor_field_get_sf_rotation(robs_rotation[i])[3]; // THETA
+		for (i=0;i<FLOCK_SIZE;i++) {
+			// Get data
+			loc[i][0] = wb_supervisor_field_get_sf_vec3f(robs_trans[i])[0]; // X
+			loc[i][1] = wb_supervisor_field_get_sf_vec3f(robs_trans[i])[2]; // Z
+			loc[i][2] = wb_supervisor_field_get_sf_rotation(robs_rotation[i])[3]; // THETA
 				
-    			}
+		}
 			//Compute and normalize fitness values
-			compute_fitness(&fit_cluster, &fit_orient);
-			fit_cluster = fit_cluster_ref/fit_cluster;
-			fit_orient = 1-fit_orient/M_PI;
-			printf("time:%d, Topology Performance: %f\n", t, fit_cluster);
+		compute_fitness(&fit_cluster, &fit_orient);
+		fit_cluster = fit_cluster_ref/fit_cluster;
+		fit_orient = 1-fit_orient/M_PI;
+		printf("time:%d, Topology Performance: %f\n", t, fit_cluster);
 			
 			//compute metric values			
-			compute_metric(metrics, cm_pos);
-            		metrics[4]/=t;
-            		printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n", t, metrics[0], metrics[1], metrics[2], metrics[3], metrics[4]);
-			
-		}
+		compute_metric(metrics, cm_pos);
 		
-		t += TIME_STEP;
+        		 float over_perf = metrics[4] / nb_step;
+		
+		if (t % 10 == 0) {
+			printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n"
+			, t, metrics[0], metrics[1], metrics[2], metrics[3], over_perf);
+		}
+
 	}
 
 }
