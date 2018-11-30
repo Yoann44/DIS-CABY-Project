@@ -365,8 +365,8 @@ void process_received_ping_messages(void)
 			i++
 		}
 	}
-	double x = sin(direction); // A verifier
-	double y = cos(direction);
+	double x = sinf(direction); // A verifier
+	double y = cosf(direction);
 	theta = -atan2(y, x);
 	theta = theta + my_position[2];
 	
@@ -408,7 +408,7 @@ int main(){
 		/* Braitenberg */
 		for(i=0;i<NB_SENSORS;i++) 
 		{
-			distances[i]= e_get_prox(i); //Read sensor values
+			distances[i]= e_get_calibrated_prox(i); //Read sensor values
 			sum_sensors += distances[i]; // Add up sensor values
 			max_sens = max_sens>distances[i]?max_sens:distances[i]; // Check if new highest sensor value
 
