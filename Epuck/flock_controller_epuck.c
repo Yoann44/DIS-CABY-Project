@@ -17,9 +17,7 @@
 #define MIN_SENS          350     // Minimum sensibility value
 #define MAX_SENS          4096    // Maximum sensibility value
 #define MAX_SPEED         800     // Maximum speed
-/*Webots 2018b*/
-#define MAX_SPEED_WEB      6.28    // Maximum speed webots
-/*Webots 2018b*/
+
 #define FLOCK_SIZE	  3	  // Size of flock
 #define TIME_STEP	  64	  // [ms] Length of time step
 
@@ -48,11 +46,6 @@
 
 int e_puck_matrix[16] = {17,29,34,10,8,-38,-56,-76,-72,-58,-36,8,10,36,28,18}; // for obstacle avoidance
 
-
-WbDeviceTag ds[NB_SENSORS];	// Handle for the infrared distance sensors
-WbDeviceTag receiver2;		// Handle for the receiver node
-WbDeviceTag emitter2;		// Handle for the emitter node
-
 int robot_id_u, robot_id;	// Unique and normalized (between 0 and FLOCK_SIZE-1) robot ID
 
 float relative_pos[FLOCK_SIZE][3];	// relative X, Z, Theta of all robots
@@ -64,8 +57,6 @@ float relative_speed[FLOCK_SIZE][2];	// Speeds calculated with Reynold's rules
 int initialized[FLOCK_SIZE];		// != 0 if initial positions have been received
 float migr[2] = {0.0,-10.0};	        // Migration vector
 char* robot_name;
-
-int neighbors_id[2];
 
 float theta_robots[FLOCK_SIZE];
 
@@ -302,9 +293,7 @@ void reynolds_rules() {
 */
 void send_ping(void)  
 {
-	//char out[10];
-	//strcpy(out,robot_name);  // in the ping message we send the name of the robot.
-	//wb_emitter_send(emitter2,out,strlen(out)+1);
+	
 	while(ircomSendDone() == 0) {
 		ircomSend(robot_id);
 	}
@@ -392,9 +381,7 @@ void process_received_ping_messages(void)
 // the main function
 int main(){ 
 	int msl, msr;			// Wheel speeds
-	/*Webots 2018b*/
-	float msl_w, msr_w;
-	/*Webots 2018b*/
+	
 	int bmsl, bmsr, sum_sensors;	// Braitenberg parameters
 	int i;				// Loop counter
 	int distances[NB_SENSORS];	// Array for the distance sensor readings
@@ -460,19 +447,9 @@ int main(){
 		msl += bmsl*6.0f;
 		msr += bmsr*6.0f;
 		
-		/*Webots 2018b*/
-		// Set speed
-		//msl_w = msl*MAX_SPEED_WEB/1000;
-		//msr_w = msr*MAX_SPEED_WEB/1000;
-		//wb_motor_set_velocity(left_motor, msl_w);
-		//wb_motor_set_velocity(right_motor, msr_w);
-		//wb_differential_wheels_set_speed(msl,msr);
-		/*Webots 2018b*/
 		
 		e_set_speed_left(msl);
 		e_set_speed_right(msr);
-		// Continue one step
-		wb_robot_step(TIME_STEP);
 	}
 	ircomStop();
 }
