@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/students/!svn/ver/90/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis
+END
+ComModule.c
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/students/!svn/ver/32/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/ComModule.c
+END
+e_radio_swis.c
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/students/!svn/ver/84/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/e_radio_swis.c
+END
+ComModule.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/students/!svn/ver/32/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/ComModule.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/students/!svn/ver/32/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/Makefile
+END
+e_radio_swis.h
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/students/!svn/ver/84/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/e_radio_swis.h
+END
+e_ad_conv.c
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/students/!svn/ver/32/Epuck/EpuckDevelopmentTree/library/contrib/radio_swis/e_ad_conv.c
+END

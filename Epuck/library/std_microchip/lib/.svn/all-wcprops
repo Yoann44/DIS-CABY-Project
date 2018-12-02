@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib
+END
+libpic30-coff.a
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libpic30-coff.a
+END
+libdsp-elf.a
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libdsp-elf.a
+END
+libc-coff.a
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libc-coff.a
+END
+libp30F6014A-coff.a
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libp30F6014A-coff.a
+END
+libm-elf.a
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libm-elf.a
+END
+libdsp-coff.a
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libdsp-coff.a
+END
+libpic30-elf.a
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libpic30-elf.a
+END
+libc-elf.a
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libc-elf.a
+END
+libm-coff.a
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libm-coff.a
+END
+libp30F6014A-elf.a
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/students/!svn/ver/4/Epuck/EpuckDevelopmentTree/library/std_microchip/lib/libp30F6014A-elf.a
+END

@@ -1,0 +1,18 @@
+#! /bin/bash
+
+
+# MODIFY THE FOLLOWING LINES to set the path to your e-puck directory (containing the development tree and the tools) and to your pic30-elf directory (C30 compiler)
+export EPUCKBASEPATH=$PWD/Epuck/Tools
+export C30PATH=$PWD/Epuck/Tools/pic30-elf
+
+# Setting up paths
+export PATH=$EPUCKBASEPATH/epuck:$PATH
+export PATH=$C30PATH:$C30PATH/pic30-elf:$PATH
+
+# Colored shell
+export PS1="\[\e[34m\]\u@\h:\w> \[\e[0m\]"
+
+echo "Epuck environment set"
+
+
+
