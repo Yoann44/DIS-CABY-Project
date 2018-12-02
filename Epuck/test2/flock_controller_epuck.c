@@ -47,7 +47,7 @@
 
 int e_puck_matrix[16] = {17,29,34,10,8,-38,-56,-76,-72,-58,-36,8,10,36,28,18}; // for obstacle avoidance
 
-int robot_id_u, robot_id;	// Unique and normalized (between 0 and FLOCK_SIZE-1) robot ID
+int robot_id;
 
 float relative_pos[FLOCK_SIZE][3];	// relative X, Z, Theta of all robots
 float prev_relative_pos[FLOCK_SIZE][3];	// Previous relative  X, Z, Theta values
@@ -57,9 +57,6 @@ float speed[FLOCK_SIZE][2];		// Speeds calculated with Reynold's rules
 float relative_speed[FLOCK_SIZE][2];	// Speeds calculated with Reynold's rules
 int initialized[FLOCK_SIZE];		// != 0 if initial positions have been received
 float migr[2] = {0.0,-10.0};	        // Migration vector
-char* robot_name;
-
-float theta_robots[FLOCK_SIZE];
 
 /*
  * Reset the robot's devices and get its ID
