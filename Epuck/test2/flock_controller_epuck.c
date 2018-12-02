@@ -74,7 +74,7 @@ static void reset()
     e_calibrate_ir(); 
     
     robot_id = 0;
-    printf("Reset ok\r\n");
+    printf("Reset: robot %d\n",robot_id_u);
 
 }
 
@@ -253,9 +253,9 @@ void reynolds_rules() {
 void send_ping(void)  
 {
 	
-	//while(ircomSendDone() == 0) {
+	while(ircomSendDone() == 0) {
 		ircomSend(robot_id);
-	//}
+	}
 }
 
 /*
@@ -306,12 +306,10 @@ void process_received_ping_messages(void)
 	double direction;
 	double theta;
 	IrcomMessage imsg;
-
+	ircomPopMessage(&imsg);
 	
 	int i = 0;
 	while(i < 200) {
-		ircomPopMessage(&imsg);
-		//printf("Message error : %d \r\n", imsg.error);
 		if(imsg.error == 0) {
 			other_robot_id = (int)imsg.value;
 			char tmp[128];
@@ -319,25 +317,23 @@ void process_received_ping_messages(void)
 			btcomSendString(tmp);
 			range = (double) imsg.distance;
 			direction = (double) imsg.direction;
-			double x = sinf(direction); // A verifier
-			double y = cosf(direction);
-			theta = -atan2(y, x);
-			theta = theta + my_position[2];
-			
-			relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
-			relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
-			
-			relative_speed[other_robot_id][0] = relative_speed[other_robot_id][0]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][0]-prev_relative_pos[other_robot_id][0]);
-			relative_speed[other_robot_id][1] = relative_speed[other_robot_id][1]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][1]-prev_relative_pos[other_robot_id][1]);
 		}else if (imsg.error > 0) {
 			btcomSendString("Receive failed \n");		
 		}
-		if(imsg.error == -1) {
+		if(imsg.error != -1) {
 			i++;
 		}
-		//printf("iterator : %d \r\n", i);
 	}
+	double x = sinf(direction); // A verifier
+	double y = cosf(direction);
+	theta = -atan2(y, x);
+	theta = theta + my_position[2];
 	
+	relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
+	relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
+	
+	relative_speed[other_robot_id][0] = relative_speed[other_robot_id][0]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][0]-prev_relative_pos[other_robot_id][0]);
+	relative_speed[other_robot_id][1] = relative_speed[other_robot_id][1]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][1]-prev_relative_pos[other_robot_id][1]);
 }
 
 
@@ -371,8 +367,7 @@ int main(){
 		/* Braitenberg */
 		for(i=0;i<NB_SENSORS;i++) 
 		{
-			distances[i]= e_get_prox(i); //Read sensor values
-			printf("Value of sensor number %d : %d \r\n", i, distances[i]);
+			distances[i]= e_get_calibrated_prox(i); //Read sensor values
 			sum_sensors += distances[i]; // Add up sensor values
 			max_sens = max_sens>distances[i]?max_sens:distances[i]; // Check if new highest sensor value
 
@@ -387,13 +382,10 @@ int main(){
 
 		/* Send and get information */
 		send_ping();  // sending a ping to other robot, so they can measure their distance to this robot
-		
 
 		update_self_motion(msl,msr);
-		
 
 		process_received_ping_messages();
-		
 
 		speed[robot_id][0] = (1/DELTA_T)*(my_position[0]-prev_my_position[0]);
 		speed[robot_id][1] = (1/DELTA_T)*(my_position[1]-prev_my_position[1]);
@@ -414,7 +406,7 @@ int main(){
 		msl += bmsl*6.0f;
 		msr += bmsr*6.0f;
 		
-		printf("Set speed\r\n");
+		
 		e_set_speed_left(msl);
 		e_set_speed_right(msr);
 	}
