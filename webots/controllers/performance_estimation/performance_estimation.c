@@ -18,7 +18,7 @@
 #include <webots/emitter.h>
 #include <webots/supervisor.h>
 
-#define FLOCK_SIZE	5 		// Number of robots in flock
+#define FLOCK_SIZE	5 		// Number of robots in flock (varying depending on the scenario)
 #define TIME_STEP	64		// [ms] Length of time step
 
 WbNodeRef robs[FLOCK_SIZE];		// Robots nodes
@@ -32,6 +32,7 @@ float loc[FLOCK_SIZE][3];		// Location of everybody in the flock
 #define fit_orient_ref 1.0
 
 #define v_e_puck_max 0.1287		// [m/s] E-puck maximum speed
+#define SCENARIO 0                      //0 OBSTACLES, 1 CROSSING 
 
 int offset;				// Offset of robots number
 float migrx, migrz;			// Migration vector
@@ -81,32 +82,37 @@ void compute_fitness(float* fit_c, float* fit_o) {
 }
 
 //Compute metrics for the project
-void compute_metric(float* met,float* cm_pos){
+void compute_metric(float* met,float* cm_pos,int offset){
 	float or_cos=0.; float or_sin=0.;
-    float dist=0.; float proj=0.;       //Distance between robot pos and cm, projection of velo of cm onto migratory urge
-	float new_cm_pos[2]= {0,0}; 		//Position of center of mass of the swarm
+    	float dist=0.; float proj=0.;       //Distance between robot pos and cm, projection of velo of cm onto migratory urge
+	float new_cm_pos[2]= {0,0};		//Position of center of mass of the swarm
 	int i; int j;
-	for (i=0;i<FLOCK_SIZE;i++)
+	int f_size = FLOCK_SIZE;
+	
+	if (SCENARIO == 1) {
+          	f_size = FLOCK_SIZE/2;
+         }
+	for (i=0;i<f_size;i++)
 	{	
-		or_cos+= cos(loc[i][2]);
-		or_sin+= sin(loc[i][2]);
+		or_cos+= cos(loc[i+offset][2]);
+		or_sin+= sin(loc[i+offset][2]);
 		for (j=0;j<2;j++){
-			new_cm_pos[j] += loc[i][j];
+			new_cm_pos[j] += loc[i+offset][j];
 		}
 	}
 	// Compute center of mass of the swarm
 	for (j=0;j<2;j++){
-		new_cm_pos[j] /= FLOCK_SIZE;
+		new_cm_pos[j] /= f_size;
 	}
-	for (i=0;i<FLOCK_SIZE;i++){
-		dist+=sqrtf(powf(loc[i][0]-new_cm_pos[0],2)+powf(loc[i][1]-new_cm_pos[1],2));
+	for (i=0;i<f_size;i++){
+		dist+=sqrtf(powf(loc[i+offset][0]-new_cm_pos[0],2)+powf(loc[i+offset][1]-new_cm_pos[1],2));
 	}
 	
 	// Orientation metric
-	met[0]=sqrtf(powf(or_cos,2)+powf(or_sin,2))/FLOCK_SIZE;	
+	met[0]=sqrtf(powf(or_cos,2)+powf(or_sin,2))/f_size;	
 	
     // Cohesion metric
-	met[1]=1/(1+dist/FLOCK_SIZE);
+	met[1]=1/(1+dist/f_size);
     
     // Velocity metric
     // Compute projection of the velocity of the center of mass onto the migratory urge vector
@@ -162,7 +168,10 @@ int main(int argc, char *args[]) {
 	
 	// Compute metrics for project
 	float metrics[5]={0.,0.,0.,0.,0.}; 	//Table with the 5 metrics
+	float metrics_fl_1[5]={0.,0.,0.,0.,0.};  //Metrics for group 1
+        float metrics_fl_2[5]={0.,0.,0.,0.,0.};  //Metrics for group 2
 	float cm_pos[2]={0.,0.};
+	int offset = 0;
 	
 	int nb_step = 0;		// Position of center of mass (old position)
 	
@@ -185,9 +194,19 @@ int main(int argc, char *args[]) {
 		printf("time:%d, Topology Performance: %f\n", t, fit_cluster);
 			
 			//compute metric values			
-		compute_metric(metrics, cm_pos);
+		if (SCENARIO == 1){
+            		compute_metric(metrics_fl_1, cm_pos, offset);
+                  	offset = FLOCK_SIZE/2;
+                  	compute_metric(metrics_fl_2, cm_pos, offset);
+                  	offset = 0;
+                  	for (i=0; i<5; i++)  {
+                              	metrics[i] = (metrics_fl_1[i]+metrics_fl_2[i])/2;
+                        }
+                  } else {
+  			compute_metric(metrics, cm_pos, offset);
+  		}
 		
-        		 float over_perf = metrics[4] / nb_step;
+        	float over_perf = metrics[4] / nb_step;
 		
 		if (t % 10 == 0) {
 			printf("time:%d, orientation: %f, cohesion: %f, velocity: %f, ins_perf: %f, over_perf: %f\n"
