@@ -1,86 +1,0 @@
-10
-
-dir
-96
-https://grmapc10.epfl.ch/svn/students/Epuck/EpuckDevelopmentTree/library
-https://grmapc10.epfl.ch/svn/students
-
-
-
-2010-10-20T06:58:28.433832Z
-96
-bahr
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-870a17e8-1d22-0410-be1f-d7076f0fb0e0
-
-contrib
-dir
-
-a_d
-dir
-
-motor_led
-dir
-
-std_microchip
-dir
-
-camera
-dir
-
-uart
-dir
-
-I2C
-dir
-
-codec
-dir
-
-Makefile
-file
-
-
-
-
-2011-04-07T10:53:20.755870Z
-5dba2d6377e9a0967b6d0793e3d3cfb8
-2009-11-10T11:37:33.295200Z
-86
-vaussard
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-660
-
