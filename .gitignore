@@ -34,3 +34,5 @@
 *.out
 *.app
 *.hex
+
+Epuck/Tools/*

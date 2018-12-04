@@ -29,7 +29,7 @@
 /*Webots 2018b*/
 #define MAX_SPEED_WEB      6.28    // Maximum speed webots
 /*Webots 2018b*/
-#define FLOCK_SIZE	  5	  // Size of flock
+#define FLOCK_SIZE	  10	  // Size of flock
 #define TIME_STEP	  64	  // [ms] Length of time step
 
 #define AXLE_LENGTH 		0.052	// Distance between wheels of robot (meters)
@@ -52,7 +52,7 @@
 #define MIGRATION_WEIGHT    (0.04/10)   // Wheight of attraction towards the common goal. default 0.01/10
 
 #define MIGRATORY_URGE 1 // Tells the robots if they should just go forward or move towards a specific migratory direction
-#define OBSTACLE_SCENARIO 1
+#define OBSTACLE_SCENARIO 0
 
 #define ABS(x) ((x>=0)?(x):-(x))
 
@@ -126,6 +126,7 @@ static void reset()
 	}
 
 	printf("Reset: robot %d\n",robot_id_u);
+	
 }
 
 
@@ -384,7 +385,8 @@ int main(){
 
 	msl = 0; msr = 0; 
 	max_sens = 0; 
-	
+
+
 	// Forever
 	for(;;){
 
@@ -407,6 +409,7 @@ int main(){
 		// Adapt Braitenberg values (empirical tests)
 		bmsl/=MIN_SENS; bmsr/=MIN_SENS;
 		bmsl+=66; bmsr+=72;
+		
 
 		/* Send and get information */
 		send_ping();  // sending a ping to other robot, so they can measure their distance to this robot
