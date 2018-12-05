@@ -8,8 +8,8 @@ WorldInfo {
   basicTimeStep 16
 }
 Viewpoint {
-  orientation -0.9961156807814984 -0.08644621161317269 -0.016751208880041585 1.0305233303106938
-  position -1.7999887990446213 5.892235383009134 3.2202407351664974
+  orientation -0.9910330101497635 -0.13085744234733007 -0.027016709196601183 0.894607619485295
+  position -1.5748300318088264 1.9942748254564981 2.0173373735395503
 }
 PointLight {
   intensity 0.5
@@ -102,7 +102,7 @@ DEF long_rock_3 Solid {
   }
 }
 DEF long_rock_4 Solid {
-  translation -2.9 0 0.3
+  translation -2.9 0 0.7000000000000003
   children [
     Shape {
       appearance Appearance {
@@ -225,7 +225,7 @@ DEF rock Solid {
   }
 }
 DEF rock Solid {
-  translation -1.53541 0 0.16115
+  translation -1.5868139069661604 0 0.2584003899663866
   rotation 0 -1 0 2.05704
   children [
     Shape {
@@ -446,7 +446,7 @@ DEF rock Solid {
   }
 }
 DEF rock Solid {
-  translation -1.05597 -1.77636e-15 0.3536599999999993
+  translation -1.05597 -1.77636e-15 0.4736599999999994
   children [
     Shape {
       appearance Appearance {
@@ -562,8 +562,40 @@ DEF epuck3 E-puck {
 DEF epuck4 E-puck {
   hidden position_0_0 1.5357847128286672e-8
   hidden position_0_1 1.535789298512995e-8
-  translation -2.9 0 -0.2
+  translation -2.8999999682931827 0 0.3139716326699504
   rotation 0 1 0 -1.5700000000112309
   name "epuck4"
+  controller "flock_controller"
+}
+DEF epuck5 E-puck {
+  hidden position_0_0 1.5357847128286672e-8
+  hidden position_0_1 1.535789298512995e-8
+  translation -2.899999936586366 0 0.4140512653399008
+  rotation 0 1 0 -1.5700000000112309
+  name "epuck5"
+  controller "flock_controller"
+}
+DEF epuck6 E-puck {
+  hidden position_0_0 1.5357847128286672e-8
+  hidden position_0_1 1.535789298512995e-8
+  translation -2.89999990487955 0 0.5141308980098511
+  rotation 0 1 0 -1.5700000000112309
+  name "epuck6"
+  controller "flock_controller"
+}
+DEF epuck7 E-puck {
+  hidden position_0_0 1.5357847128286672e-8
+  hidden position_0_1 1.535789298512995e-8
+  translation -2.8999998731727312 0 0.6142105306798015
+  rotation 0 1 0 -1.5700000000112309
+  name "epuck7"
+  controller "flock_controller"
+}
+DEF epuck8 E-puck {
+  hidden position_0_0 1.5357847128286672e-8
+  hidden position_0_1 1.535789298512995e-8
+  translation -2.9 0 -0.2
+  rotation 0 1 0 -1.5700000000112309
+  name "epuck8"
   controller "flock_controller"
 }

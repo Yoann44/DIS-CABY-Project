@@ -37,10 +37,9 @@
 #define WHEEL_RADIUS		0.0205	// Wheel radius (meters)
 #define DELTA_T			0.064	// Timestep (seconds)
 
-#define RULE1_THRESHOLD     0.20   // Threshold to activate aggregation rule. default 0.20
-#define RULE1_WEIGHT        -0.5	   // Weight of aggregation rule. default 0.6/10
+#define RULE1_WEIGHT        -0.8	   // Weight of aggregation rule. default 0.6/10
 
-#define RULE2_THRESHOLD     0.14   // Threshold to activate dispersion rule. default 0.15
+#define RULE2_THRESHOLD     0.12   // Threshold to activate dispersion rule. default 0.15
 #define RULE2_WEIGHT        -0.8	   // Weight of dispersion rule. default 0.02/10
 
 #define BRAITENBERG_WEIGHT 4.0f
@@ -117,7 +116,7 @@ static void reset()
 	}
 
 	migr[0] = 0.0f;
-	migr[1] = -1.0f * maxSpeed;
+	migr[1] = -1.2f * maxSpeed;
 
 	if(OBSTACLE_SCENARIO) {
     	start = 0;
@@ -207,8 +206,8 @@ void compute_wheel_speeds(int *msl, int *msr)
 	}
 	
 	// Convert to wheel speeds!
-	*msl = (u - w) * (800.0f / maxSpeed);
-	*msr = (u + w) * (800.0f / maxSpeed);
+	*msl = (u - w) * (1000.0f / maxSpeed);
+	*msr = (u + w) * (1000.0f / maxSpeed);
 
 	//printf("bearing = %f, u = %f, w = %f, msl = %d, msr = %d\n", bearing, u, w, *msl, *msr);
 	//printf("Final speed computed msl = %d, msr = %d\n", *msl, *msr);
