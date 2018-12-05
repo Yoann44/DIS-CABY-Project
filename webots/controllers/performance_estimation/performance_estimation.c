@@ -35,7 +35,7 @@ float loc[FLOCK_SIZE][3];		// Location of everybody in the flock
 #define SCENARIO 0                      //0 OBSTACLES, 1 CROSSING 
 
 int offset;				// Offset of robots number
-float migrx, migrz;			// Migration vector
+float migrx1, migrz1, migrx2, migrz2;	// Migration vectors
 float orient_migr; 			// Migration orientation
 int t;
 
@@ -82,7 +82,7 @@ void compute_fitness(float* fit_c, float* fit_o) {
 }
 
 //Compute metrics for the project
-void compute_metric(float* met,float* cm_pos,int offset){
+void compute_metric(float* met,float* cm_pos,int offset_fl){
 	float or_cos=0.; float or_sin=0.;
     	float dist=0.; float proj=0.;       //Distance between robot pos and cm, projection of velo of cm onto migratory urge
 	float new_cm_pos[2]= {0,0};		//Position of center of mass of the swarm
@@ -94,10 +94,10 @@ void compute_metric(float* met,float* cm_pos,int offset){
          }
 	for (i=0;i<f_size;i++)
 	{	
-		or_cos+= cos(loc[i+offset][2]);
-		or_sin+= sin(loc[i+offset][2]);
+		or_cos+= cos(loc[i+offset_fl][2]);
+		or_sin+= sin(loc[i+offset_fl][2]);
 		for (j=0;j<2;j++){
-			new_cm_pos[j] += loc[i+offset][j];
+			new_cm_pos[j] += loc[i+offset_fl][j];
 		}
 	}
 	// Compute center of mass of the swarm
@@ -105,7 +105,7 @@ void compute_metric(float* met,float* cm_pos,int offset){
 		new_cm_pos[j] /= f_size;
 	}
 	for (i=0;i<f_size;i++){
-		dist+=sqrtf(powf(loc[i+offset][0]-new_cm_pos[0],2)+powf(loc[i+offset][1]-new_cm_pos[1],2));
+		dist+=sqrtf(powf(loc[i+offset_fl][0]-new_cm_pos[0],2)+powf(loc[i+offset_fl][1]-new_cm_pos[1],2));
 	}
 	
 	// Orientation metric
@@ -116,8 +116,13 @@ void compute_metric(float* met,float* cm_pos,int offset){
     
     // Velocity metric
     // Compute projection of the velocity of the center of mass onto the migratory urge vector
-    proj = (new_cm_pos[0]-cm_pos[0]) * migrx + (new_cm_pos[1]-cm_pos[1]) * migrz;
-    proj /= sqrtf(powf(migrx,2)+powf(migrz,2)) * TIME_STEP / 1000.;
+    if (offset_fl != 0) {
+               proj = (new_cm_pos[0]-cm_pos[0]) * migrx2 + (new_cm_pos[1]-cm_pos[1]) * migrz2;
+               proj /= sqrtf(powf(migrx2,2)+powf(migrz2,2)) * TIME_STEP / 1000.; 
+    } else {
+               proj = (new_cm_pos[0]-cm_pos[0]) * migrx1 + (new_cm_pos[1]-cm_pos[1]) * migrz1;
+               proj /= sqrtf(powf(migrx1,2)+powf(migrz1,2)) * TIME_STEP / 1000.;
+    }
     met[2]=fmax(proj,0)/v_e_puck_max;
     
 	cm_pos[0]=new_cm_pos[0];
@@ -141,14 +146,16 @@ int main(int argc, char *args[]) {
   
 	if (argc == 4) { // Get parameters
 		offset = atoi(args[1]);
-		migrx = atof(args[2]);
-		migrz = atof(args[3]);
+		migrx1 = atof(args[2]);
+		migrz1 = atof(args[3]);
 		//migration goal point comes from the controller arguments. It is defined in the world-file, under "controllerArgs" of the supervisor.
-		printf("Migratory instinct : (%f, %f)\n", migrx, migrz);
+		printf("Migratory instinct : (%f, %f)\n", migrx1, migrz1);
 	} else {
     		offset = 0.;
-		migrx = 1.0;
-		migrz = 0.0;
+		migrx1 = 1.0;
+		migrz1 = 0.0;
+		migrx2 = -1.0;
+		migrz2 = 0.0;
 		printf("Missing argument\n");
 		//return 1;
 	}
@@ -171,7 +178,7 @@ int main(int argc, char *args[]) {
 	float metrics_fl_1[5]={0.,0.,0.,0.,0.};  //Metrics for group 1
         float metrics_fl_2[5]={0.,0.,0.,0.,0.};  //Metrics for group 2
 	float cm_pos[2]={0.,0.};
-	int offset = 0;
+	int offset_fl = 0;		//Offset to differientiate the two flocks
 	
 	int nb_step = 0;		// Position of center of mass (old position)
 	
@@ -195,15 +202,15 @@ int main(int argc, char *args[]) {
 			
 			//compute metric values			
 		if (SCENARIO == 1){
-            		compute_metric(metrics_fl_1, cm_pos, offset);
-                  	offset = FLOCK_SIZE/2;
-                  	compute_metric(metrics_fl_2, cm_pos, offset);
-                  	offset = 0;
+            		compute_metric(metrics_fl_1, cm_pos, offset_fl);
+                  	offset_fl = FLOCK_SIZE/2;
+                  	compute_metric(metrics_fl_2, cm_pos, offset_fl);
+                  	offset_fl = 0;
                   	for (i=0; i<5; i++)  {
                               	metrics[i] = (metrics_fl_1[i]+metrics_fl_2[i])/2;
                         }
                   } else {
-  			compute_metric(metrics, cm_pos, offset);
+  			compute_metric(metrics, cm_pos, offset_fl);
   		}
 		
         	float over_perf = metrics[4] / nb_step;
