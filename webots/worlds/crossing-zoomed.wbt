@@ -228,16 +228,7 @@ Supervisor {
     }
   ]
   name "super0"
-  controller "flock_super"
-}
-Supervisor {
-  children [
-    DEF emitter Emitter {
-      channel 2
-    }
-  ]
-  name "super1"
-  controller "flock_super"
+  controller "performance_estimation"
 }
 DEF epuck0 E-puck {
   hidden position_0_0 1.5357847128286672e-8
