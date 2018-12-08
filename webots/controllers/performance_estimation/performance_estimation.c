@@ -174,10 +174,11 @@ int main(int argc, char *args[]) {
 	
 	// Compute metrics for project
 	float metrics[5]={0.,0.,0.,0.,0.}; 	//Table with the 5 metrics
-         float metrics_fl_1[5]={0.,0.,0.,0.,0.};  //Metrics for group 1
-         float metrics_fl_2[5]={0.,0.,0.,0.,0.};  //Metrics for group 2
-	float cm_pos[2]={0.,0.};
-        	int offset_fl = 0;  //Offset to differientiate the two flocks
+        float metrics_fl_1[5]={0.,0.,0.,0.,0.};  //Metrics for group 1
+        float metrics_fl_2[5]={0.,0.,0.,0.,0.};  //Metrics for group 2
+	float cm_pos_fl_1[2]={0.,0.};
+	float cm_pos_fl_2[2]={0.,0.};
+        int offset_fl = 0;  //Offset to differientiate the two flocks
 	
 	int nb_step = 0;		// Position of center of mass (old position)
 	
@@ -201,15 +202,15 @@ int main(int argc, char *args[]) {
 				
 			//compute metric values
   		if (SCENARIO == 1){
-            		compute_metric(metrics_fl_1, cm_pos, offset_fl);
+            		compute_metric(metrics_fl_1, cm_pos_fl_1, offset_fl);
                   	offset_fl = FLOCK_SIZE/2;
-                  	compute_metric(metrics_fl_2, cm_pos, offset_fl);
+                  	compute_metric(metrics_fl_2, cm_pos_fl_2, offset_fl);
                   	offset_fl = 0;
                   	for (i=0; i<5; i++)  {
                               	metrics[i] = (metrics_fl_1[i]+metrics_fl_2[i])/2;
                            }
                   } else {
-  			compute_metric(metrics, cm_pos, offset_fl);
+  			compute_metric(metrics, cm_pos_fl_1, offset_fl);
   		}
 		
         	float over_perf = metrics[4] / nb_step;
