@@ -27,36 +27,32 @@
 #define DELTA_T			0.064	// Timestep (seconds)
 
 
-#define RULE1_THRESHOLD     0.20   // Threshold to activate aggregation rule. default 0.20
 #define RULE1_WEIGHT        (0.8/10)	   // Weight of aggregation rule. default 0.6/10
 
 #define RULE2_THRESHOLD     0.12   // Threshold to activate dispersion rule. default 0.15
 #define RULE2_WEIGHT        (0.5/10)	   // Weight of dispersion rule. default 0.02/10
 
-#define RULE4_THRESHOLD     0.12   // Threshold to activate dispersion rule. default 0.15
-#define RULE4_WEIGHT        (0.0/100)	   // Weight of dispersion rule. default 0.02/10
-
-#define RULE3_WEIGHT        (1.0/10)   // Weight of consistency rule. default 1.0/10
-
 #define MIGRATION_WEIGHT    (0.04/10)   // Wheight of attraction towards the common goal. default 0.01/10
 
-#define MIGRATORY_URGE 1 // Tells the robots if they should just go forward or move towards a specific migratory direction
+#define BRAITENBERG_WEIGHT 4.0f
 
 #define ABS(x) ((x>=0)?(x):-(x))
 #define M_PI 3.141592
+
+#define OBSTACLE_SCENARIO 1
+
+float maxSpeed = MAX_SPEED* WHEEL_RADIUS;
 
 int e_puck_matrix[16] = {17,29,34,10,8,-38,-56,-76,-72,-58,-36,8,10,36,28,18}; // for obstacle avoidance
 
 int robot_id;
 
 float relative_pos[FLOCK_SIZE][3];	// relative X, Z, Theta of all robots
-float prev_relative_pos[FLOCK_SIZE][3];	// Previous relative  X, Z, Theta values
 float my_position[3];     		// X, Z, Theta of the current robot
-float prev_my_position[3];  		// X, Z, Theta of the current robot in the previous time step
-float speed[FLOCK_SIZE][2];		// Speeds calculated with Reynold's rules
-float relative_speed[FLOCK_SIZE][2];	// Speeds calculated with Reynold's rules
-int initialized[FLOCK_SIZE];		// != 0 if initial positions have been received
+
+float new_speed[2] = {0.0f, 0.0f};
 float migr[2] = {0.0,-10.0};	        // Migration vector
+int start, end;
 
 /*
  * Reset the robot's devices and get its ID
@@ -74,7 +70,22 @@ static void reset()
     e_calibrate_ir(); 
     
     robot_id = 0;
-    printf("Reset: robot %d\n",robot_id_u);
+    
+    migr[0] = 0.0f;
+	migr[1] = -1.2f * maxSpeed;
+
+	if(OBSTACLE_SCENARIO) {
+    	start = 0;
+    	end = FLOCK_SIZE;
+	}
+	else if(robot_id < FLOCK_SIZE / 2) {
+		start = 0;
+		end = FLOCK_SIZE / 2;
+	}
+	else {
+		start  = FLOCK_SIZE / 2;
+		end = FLOCK_SIZE;
+	}
 
 }
 
@@ -123,29 +134,36 @@ void update_self_motion(int msl, int msr) {
 void compute_wheel_speeds(int *msl, int *msr) 
 {
 	// Compute wanted position from Reynold's speed and current location
-	//float x = speed[robot_id][0]*cosf(loc[robot_id][2]) - speed[robot_id][1]*sinf(loc[robot_id][2]); // x in robot coordinates
-	//float z = -speed[robot_id][0]*sinf(loc[robot_id][2]) - speed[robot_id][1]*cosf(loc[robot_id][2]); // z in robot coordinates
-	
-	float x = speed[robot_id][0]*cosf(my_position[2]) + speed[robot_id][1]*sinf(my_position[2]); // x in robot coordinates
-	float z = -speed[robot_id][0]*sinf(my_position[2]) + speed[robot_id][1]*cosf(my_position[2]); // z in robot coordinates
-//	printf("id = %d, x = %f, y = %f\n", robot_id, x, z);
-	float Ku = 0.2;   // Forward control coefficient
-	float Kw = 1;  // Rotational control coefficient
-	float range = sqrtf(x*x + z*z);	  // Distance to the wanted position
-	float bearing = -atan2(x, z);	  // Orientation of the wanted position
-	
+	float speed_norm = sqrtf(new_speed[0]*new_speed[0] + new_speed[1]*new_speed[1]);	  // Desired speed, maximum = 0.12 : maxSpeed
+	float bearing = atan2(new_speed[0], -new_speed[1]);	  // Orientation of the wanted position
+	//printf("id = %d, x = %f, y = %f, theta = %f, speed_x = %f, speed_y = %f\n", robot_id, x, z, my_position[2], new_speed[0], new_speed[1]);
+
 	// Compute forward control
-	float u = Ku*range*cosf(bearing);
-	// Compute rotational control
-	float w = Kw*bearing;
+	if(speed_norm > maxSpeed)
+		speed_norm = maxSpeed;
+
+	// Compute priority oof rotation to forward control
+	float w = 0.0f;
+	float u = 0.0f;
+	if(bearing > M_PI / 2.0f ) {
+		// More than 90deg, turn to max speed
+		w = maxSpeed;
+		u = 0.0f;
+	}
+	else if( bearing < -M_PI / 2.0f ) {
+		// More than 90deg, turn to max speed
+		w = -maxSpeed;
+		u = 0.0f;
+	}
+	else {
+		//Linear function between 0 and max_speed while bearing going from 0 to pi/2
+		w = bearing * 2.0f / M_PI * maxSpeed;
+		u = speed_norm * ( M_PI / 2.0f - ABS(bearing) ) / (M_PI / 2.0f);
+	}
 	
 	// Convert to wheel speeds!
-	
-	*msl = (u - AXLE_LENGTH*w/2.0) * (1000.0 / WHEEL_RADIUS);
-	*msr = (u + AXLE_LENGTH*w/2.0) * (1000.0 / WHEEL_RADIUS);
-//	printf("bearing = %f, u = %f, w = %f, msl = %f, msr = %f\n", bearing, u, w, msl, msr);
-	limit(msl,MAX_SPEED);
-	limit(msr,MAX_SPEED);
+	*msl = (u - w) * (1000.0f / maxSpeed);
+	*msr = (u + w) * (1000.0f / maxSpeed);
 }
 
 
@@ -154,96 +172,63 @@ void compute_wheel_speeds(int *msl, int *msr)
  */
 
 void reynolds_rules() {
-	int i, j, k;			// Loop counters
+	int i;							// Loop counter
 	float rel_avg_loc[2] = {0,0};	// Flock average positions
-	float rel_avg_speed[2] = {0,0};	// Flock average speeds
 	float cohesion[2] = {0,0};
 	float dispersion[2] = {0,0};
-	float consistency[2] = {0,0};
-	float agregation[2] = {0,0};
 	
 	/* Compute averages over the whole flock */
-	for(i=0; i < FLOCK_SIZE; i++) {
+	for(i = start; i < end; i++) {
 		if(i == robot_id) {
 			continue;
 		}
-		for (j=0;j<2;j++) {
-			rel_avg_speed[j] += relative_speed[i][j];
-			rel_avg_loc[j] += relative_pos[i][j];
-		}
+
+		rel_avg_loc[0] += relative_pos[i][0];
+		rel_avg_loc[1] += relative_pos[i][1];
+		//printf("Nb : %d, rel_0 = %f, rel_1 = %f, avg_0 = %f, avg_1 = %f\n", i, relative_pos[i][0], relative_pos[i][1], rel_avg_loc[0], rel_avg_loc[1]);
 	}
 
-	for (j=0;j<2;j++) {
-		rel_avg_speed[j] /= FLOCK_SIZE-1;
-		rel_avg_loc[j] /= FLOCK_SIZE-1;
-	}
+	rel_avg_loc[0] /= end - start - 1;
+	rel_avg_loc[1] /= end - start - 1;
 	
-	//printf("Robot %s, x_avg: %g, y_avg: %g, speed_x_avg %g, speed_y_avg %g\n",robot_name,rel_avg_loc[0],rel_avg_loc[1],rel_avg_speed[0],rel_avg_speed[1]);
+	//printf("Robot %s, x_avg: %f, y_avg: %f\n",robot_name,rel_avg_loc[0],rel_avg_loc[1]);
 	
 	
 	/* Rule 1 - Aggregation/Cohesion: move towards the center of mass */
-	
-	for (j=0;j<2;j++) {	
-		cohesion[j] = rel_avg_loc[j];
-	}
+	cohesion[0] = rel_avg_loc[0];
+	cohesion[1] = rel_avg_loc[1];
 
 	/* Rule 2 - Dispersion/Separation: keep far enough from flockmates */
-	for(k = 0; k < FLOCK_SIZE; k++) {
-		if(k != robot_id) {
-			float distance = sqrtf( pow(relative_pos[k][0], 2)+pow(relative_pos[k][1], 2) );
-			float repulsion = RULE2_THRESHOLD/distance - 1;
+	for(i = start; i < end; i++) {
+		if(i != robot_id) {
+
+			float distance = sqrtf( pow(relative_pos[i][0], 2)+pow(relative_pos[i][1], 2) );
+			float repulsion1 = RULE2_THRESHOLD/distance - 1;
+
 			if( distance < RULE2_THRESHOLD) {
-			for (j=0;j<2;j++) {
-				dispersion[j] -= relative_pos[k][j] / distance * repulsion;
-				
-			}
-		}
-		else if(distance > RULE4_THRESHOLD) {
-			if(distance > RULE4_THRESHOLD * 3.0f) {
-				for (j=0;j<2;j++) {
-					agregation[j] += 0;
-				}
-			}
-			else {
-				for (j=0;j<2;j++) {
-						agregation[j] += -cosf((relative_pos[k][j] - RULE4_THRESHOLD) / RULE4_THRESHOLD * 3.141592 * 0.5) + 1;
-					}
-				}
+				dispersion[0] -= relative_pos[i][0] / distance * repulsion1;
+				dispersion[1] -= relative_pos[i][1] / distance * repulsion1;
+				//printf("Robot : %d - %d Dispersion: dispersion[0] = %f, dispersion[1] = %f, rel_pos[0] = %f, rel_pos[1] = %f\n", robot_id, k, dispersion[0], dispersion[1], relative_pos[k][0], relative_pos[k][1]);
 			}
 		}
 	}
 
-	/* Rule 3 - Consistency/Alignment: match the speeds of flockmates */
-	for (j=0;j<2;j++) {
-		consistency[j] = rel_avg_speed[j];
-	}
+	/* Aggregation of all behaviors with relative influence determined by weights */
+	new_speed[0] = cohesion[0] * RULE1_WEIGHT;
+	new_speed[1] = cohesion[1] * RULE1_WEIGHT;
 
-	//aggregation of all behaviors with relative influence determined by weights
-	for (j=0;j<2;j++) 
-	{
-		speed[robot_id][j] = cohesion[j] * RULE1_WEIGHT;
-		
-		speed[robot_id][j] +=  dispersion[j] * RULE2_WEIGHT;
-		
-		speed[robot_id][j] +=  consistency[j] * RULE3_WEIGHT;
-		
-		speed[robot_id][j] +=  agregation[j] * RULE4_WEIGHT;
-		
-	}
-	// speed[robot_id][1] *= -1; //y axis of webots is inverted
+	//printf("Robot %d, coh_x = %f, coh_y = %f, new_speed_0 = %f, new_speed_1 = %f\n", robot_id, cohesion[0], cohesion[1], new_speed[0], new_speed[1]);
+	new_speed[0] +=  dispersion[0] * RULE2_WEIGHT;
+	new_speed[1] +=  dispersion[1] * RULE2_WEIGHT;
+	//printf("Robot %d, dis_x = %f, dis_y = %f, new_speed_0 = %f, new_speed_1 = %f\n", robot_id, dispersion[0], dispersion[1], new_speed[0], new_speed[1]);
 
-	//move the robot according to some migration rule
-	if(MIGRATORY_URGE == 0){
-		speed[robot_id][0] += 0.01*cos(my_position[2] + M_PI/2);
-		speed[robot_id][1] += 0.01*sin(my_position[2] + M_PI/2);
+	new_speed[1] *= -1; //y axis of webots is inverted
+
+	/* Migration - Conversion from absolute direction to relative frame */
+	new_speed[0] +=  migr[0] * cos(my_position[2]) + migr[1] * sin(my_position[2]);
+	new_speed[1] += -migr[0] * sin(my_position[2]) + migr[1] * cos(my_position[2]); //y axis of webots is inverted
+	//printf("Robot %d, migr0 = %f, migr1 = %f, speed0 = %f, speed1 = %f, theta = %f \n", robot_id, migr[0], migr[1], new_speed[0], new_speed[1], my_position[2] );
 	}
-	else {
-		speed[robot_id][0] += (migr[0]-my_position[0]) * MIGRATION_WEIGHT;
-		speed[robot_id][1] += (migr[1]-my_position[1]) * MIGRATION_WEIGHT; 
-	}
-	
-	speed[robot_id][1] = -speed[robot_id][1]; //invert y-axis !!! Remove for real robots !!!
-}
 
 /*
  *  each robot sends a ping message, so the other robots can measure relative range and bearing to the sender.
@@ -264,52 +249,15 @@ void send_ping(void)
 */
 void process_received_ping_messages(void)
 {
-	//const double *message_direction;
-	//double message_rssi; // Received Signal Strength indicator
-	//double theta;
-	//double range;
-	//char *inbuffer;	// Buffer for the receiver node
-	//int other_robot_id;
-
-	//while (wb_receiver_get_queue_length(receiver2) > 0) {
-		//inbuffer = (char*) wb_receiver_get_data(receiver2);
-		//message_direction = wb_receiver_get_emitter_direction(receiver2);
-		//message_rssi = wb_receiver_get_signal_strength(receiver2);
-		//double y = message_direction[2];
-		//double x = message_direction[0];
-
-		//theta =	-atan2(y,x);
-		//theta = theta + my_position[2]; // find the relative theta;
-		//range = sqrt((1/message_rssi));
-		
-
-		//other_robot_id = (int)(inbuffer[5]-'0');  // since the name of the sender is in the received message. Note: this does not work for robots having id bigger than 9!
-		
-		//// Get position update
-		////theta += dtheta_g[other_robot_id];
-		////theta_robots[other_robot_id] = 0.8*theta_robots[other_robot_id] + 0.2*theta;
-		//prev_relative_pos[other_robot_id][0] = relative_pos[other_robot_id][0];
-		//prev_relative_pos[other_robot_id][1] = relative_pos[other_robot_id][1];
-
-		//relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
-		//relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
-
-		////printf("Robot %s, from robot %d, x: %g, y: %g, theta %g, my theta %g\n",robot_name,other_robot_id,relative_pos[other_robot_id][0],relative_pos[other_robot_id][1],-atan2(y,x)*180.0/3.141592,my_position[2]*180.0/3.141592);
-		
-		//relative_speed[other_robot_id][0] = relative_speed[other_robot_id][0]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][0]-prev_relative_pos[other_robot_id][0]);
-		//relative_speed[other_robot_id][1] = relative_speed[other_robot_id][1]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][1]-prev_relative_pos[other_robot_id][1]);		
-		
-		//wb_receiver_next_packet(receiver2);
-	//}
 	int other_robot_id;
 	double range;
 	double direction;
 	double theta;
 	IrcomMessage imsg;
-	ircomPopMessage(&imsg);
 	
 	int i = 0;
 	while(i < 200) {
+		ircomPopMessage(&imsg);
 		if(imsg.error == 0) {
 			other_robot_id = (int)imsg.value;
 			char tmp[128];
@@ -331,9 +279,6 @@ void process_received_ping_messages(void)
 	
 	relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
 	relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
-	
-	relative_speed[other_robot_id][0] = relative_speed[other_robot_id][0]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][0]-prev_relative_pos[other_robot_id][0]);
-	relative_speed[other_robot_id][1] = relative_speed[other_robot_id][1]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][1]-prev_relative_pos[other_robot_id][1]);
 }
 
 
@@ -387,9 +332,6 @@ int main(){
 
 		process_received_ping_messages();
 
-		speed[robot_id][0] = (1/DELTA_T)*(my_position[0]-prev_my_position[0]);
-		speed[robot_id][1] = (1/DELTA_T)*(my_position[1]-prev_my_position[1]);
-
 		// Reynold's rules with all previous info (updates the speed[][] table)
 		reynolds_rules();
 
@@ -403,8 +345,8 @@ int main(){
 		}
 
 		// Add Braitenberg
-		msl += bmsl*6.0f;
-		msr += bmsr*6.0f;
+		msl += bmsl*BRAITENBERG_WEIGHT;
+		msr += bmsr*BRAITENBERG_WEIGHT;
 		
 		
 		e_set_speed_left(msl);
