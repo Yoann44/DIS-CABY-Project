@@ -60,6 +60,11 @@ float new_speed[2] = {0.0f, 0.0f};
 float migr[2] = {0.0, 0.0};	        // Migration vector
 int start, end;
 int valid[FLOCK_SIZE] = {0, 0};
+
+double dr_x = 0;
+double dr_y = 0;
+double dr_theta = 0;
+
 /*
  * Reset the robot's devices and get its ID
  */
@@ -72,6 +77,7 @@ static void reset()
     e_led_clear();	
     e_init_motors();
     e_start_agendas_processing();
+    e_set_dr_position(dr_x,dr_y,dr_theta);
     
     e_calibrate_ir(); 
     
@@ -370,7 +376,17 @@ int main(){
 			*/
 
 			
-			update_self_motion(msl,msr);
+			//update_self_motion(msl,msr);
+			e_do_dr();
+
+			//in mm... convert to meters but theta should be fine
+			e_get_dr_position(&dr_x,&dr_y,&dr_theta);
+
+			my_position[0] = dr_x / 1000.;
+			my_position[1] = dr_y / 1000.;
+			my_position[2] = dr_theta;
+
+
 
 			process_received_ping_messages();
 			
