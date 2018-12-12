@@ -43,7 +43,7 @@ DEPS = $(addsuffix .d,$(basename $(SRCS)))
 CTAGS    = ctags
 ASM      = pic30-elf-as
 CC       = pic30-elf-gcc
-LD	 = pic30-elf-ld
+LD	 	 = pic30-elf-ld
 
 #  common options
 DEPCFLAGS = -Wall -I. -I$(EPUCKLIBROOT)/std_microchip/support/h -I$(EPUCKLIBROOT)/std_microchip/include -I$(EPUCKLIBROOT) -I$(EPUCKLIBROOT)/std_microchip/support/h 

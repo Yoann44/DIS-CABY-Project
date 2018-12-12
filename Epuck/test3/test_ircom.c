@@ -50,7 +50,9 @@ static void reset()
     e_init_motors();
     e_start_agendas_processing();
     
-    e_calibrate_ir(); 
+    //e_calibrate_ir();
+
+	btcomSendString("Reset finish \r\n");
     
     robot_id = 0;
 }
@@ -75,14 +77,10 @@ void limit(int *number, int limit) {
 */
 void send_ping(void)  
 {
-	int i = 0;
-	//while(ircomSendDone() == 0) {
-	while(i < 200) {
-		ircomSend(robot_id);
-		if(ircomSendDone() == 0) {
-			break;
-		}
-		i++;
+	btcomSendString("Send start \r\n");
+	ircomSend(robot_id);
+	while(ircomSendDone() == 0) {
+		asm("nop");
 	}
 }
 
@@ -92,8 +90,10 @@ void send_ping(void)
 */
 void process_received_ping_messages(void)
 {
+	btcomSendString("Process ping \r\n");
 	int other_robot_id;
 	double range;
+	double real_distance;
 	double direction;
 	double theta;
 	IrcomMessage imsg;
@@ -104,24 +104,31 @@ void process_received_ping_messages(void)
 		if(imsg.error == 0) {
 			other_robot_id = (int)imsg.value;
 			char tmp[128];
-			sprintf(tmp, "Robot %d;\tDistance %f;\tDirection %f\n", other_robot_id, (double)imsg.distance, (double)imsg.direction);
+			sprintf(tmp, "Robot %d;\tDistance %f;\tDirection %f\r\n", other_robot_id, (double)imsg.distance, (double)imsg.direction);
 			btcomSendString(tmp);
 			range = (double) imsg.distance;
+			// From interpolation of real values
+			real_distance = 1./0.5876*(range - 7.473);
 			direction = (double) imsg.direction;
+			double x = sinf(direction); // A verifier
+			double y = cosf(direction);
+			theta = -atan2(y, x);
+			
+			relative_pos[other_robot_id][0] = real_distance*cos(theta);  // relative x pos
+			relative_pos[other_robot_id][1] = -1.0 * real_distance*sin(theta);   // relative y pos
+			
+			char tmp2[128];
+			sprintf(tmp2, "Robot %d;\tDistance %f\r\n", other_robot_id, real_distance);
+			btcomSendString(tmp2);
+		
 		}else if (imsg.error > 0) {
-			btcomSendString("Receive failed \n");		
+			btcomSendString("Receive failed \r\n");		
 		}
-		if(imsg.error != -1) {
+		else if(imsg.error < 0) {	
 			i++;
 		}
 	}
-	double x = sinf(direction); // A verifier
-	double y = cosf(direction);
-	theta = -atan2(y, x);
-	theta = theta + my_position[2];
 	
-	relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
-	relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
 }
 
 
@@ -143,7 +150,7 @@ int main(){
     ircomEnableContinuousListening();
     ircomListen();
     
-	max_sens = 0; 
+	// max_sens = 0; 
 	
 	// Forever
 	for(;;){
@@ -177,9 +184,12 @@ int main(){
 
 		process_received_ping_messages();
 
-		for(j = 0; j < 300000; j++) {
-	    	asm("nop");
+		btcomSendString("Wait start \r\n");
+		long j;
+		for(j=0;j<3000000;j++) {
+			asm("nop");
 		}
+		btcomSendString("Wait end \r\n");
 
 		// Reynold's rules with all previous info (updates the speed[][] table)
 		//reynolds_rules();
