@@ -237,9 +237,14 @@ void reynolds_rules() {
 */
 void send_ping(void)  
 {
-	
-	while(ircomSendDone() == 0) {
+	int i = 0;
+	//while(ircomSendDone() == 0) {
+	while(i < 200) {
 		ircomSend(robot_id);
+		if(ircomSendDone() == 0) {
+			break;
+		}
+		i++;
 	}
 }
 
