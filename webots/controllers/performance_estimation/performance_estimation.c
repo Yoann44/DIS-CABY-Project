@@ -180,14 +180,14 @@ int main(int argc, char *args[]) {
                   		cm_pos_fl_2[i] /= (FLOCK_SIZE/2);
                     	}
                   	} else {
-                            	for (i=0;i<(FLOCK_SIZE/2);i++)
+                            	for (i=0;i<FLOCK_SIZE;i++)
                             	{
                                     	for (j=0;j<2;j++){
                             			cm_pos_fl_1[j] += loc[i][j];
                             		}
                   		}
                   		for (i=0;i<2;i++){
-                            		cm_pos_fl_1[i] /= (FLOCK_SIZE/2);
+                            		cm_pos_fl_1[i] /= FLOCK_SIZE;
                             	}	
                     	}
                   }	
